@@ -1,7 +1,7 @@
 /* global phaser
 es un ojeto global, del motor de juegos
 que podemos configurar*/
-
+import { createAnimations } from "./animations.js"
 const config = {
     type: Phaser.AUTO ,// webgl, canvas
     width:256,
@@ -44,6 +44,8 @@ function preload(){
         //indicamos el framewidith, el tamaño de los frames.
         {frameWidth: 18, frameHeight: 16}
     )   
+    this.load.audio('game-over', 
+        'assets/sound/music/gameover.mp3')
 
 }
 
@@ -57,31 +59,36 @@ function create(){
 
    
 
-   this.add.tileSprite(0, config.height , config.width, 32, 'floorbricks')
-   .setOrigin(0,1) 
+   //this.add.tileSprite(0, config.height , config.width, 32, 'floorbricks')
+   //.setOrigin(0,1) 
+   this.floor=this.physics.add.staticGroup()
+   this.floor
+    .create(0,config.height-16,'floorbricks')
+    .setOrigin(0,0.5)
+    .refreshBody()
+
+   this.floor
+   .create(150, config.height-16,'floorbricks')
+   .setOrigin(0,0.5) 
+   .refreshBody()
+
+
     //Esto es importante!.
     //guardamos al mario en una variable, un objeto.
     //en este caso nos permite guardarlo en un objeto del juego con this.
     
-   this.mario = this.add.sprite(50,210,'mario')
+   this.mario = this.physics.add.sprite(50,100,'mario')
    .setOrigin(0,1)
-   
+   .setGravityY(300)//para setear la gravedad en particular.
+   .setCollideWorldBounds(true) //no escapa del mundo
 
-    //animaciones mario
-    this.anims.create({
-        key:'mario-walk',
-        frames:this.anims.generateFrameNumbers(
-            'mario',
-            {start:3,end:2}
-        ),
-        repeat: -1 //infinito
-    })
-    this.anims.create({
-        key:'mario-jump',
-        frames: [{key:'mario',frame:5}]               
-        
-    })
+   this.physics.world.setBounds(0,0,2000,config.height)
+   this.physics.add.collider(this.mario, this.floor)
 
+   this.cameras.main.setBounds(0,0,2000,config.height)
+   this.cameras.main.startFollow(this.mario)
+    
+   createAnimations(this)
 
    //creamos el objeto para detectar el teclado.
    this.keys= this.input.keyboard.createCursorKeys()
@@ -90,6 +97,8 @@ function create(){
 }
 
 function update(){
+    if (this.mario.isDead) return
+
     if (this.keys.left.isDown){
         this.mario.anims.play('mario-walk',true)
         this.mario.x -=2
@@ -101,11 +110,34 @@ function update(){
         this.mario.flipX=false
     }else{
         this.mario.anims.stop()
-        this.mario.setFrame(0)
+        this.mario.setFrame('mario-idle', true)
     }
-    if (this.keys.up.isDown){
-        this.mario.y -=5
+    if (this.keys.up.isDown && this.mario.body.touching.down){
+        this.mario.setVelocityY(-500)
         this.mario.anims.play('mario-jump',true)
     }
+    if(this.mario.body.touching.down==false){
+        this.mario.anims.play('mario-jump',true)
+    }
+    if(this.mario.y >= config.height){
+        
+        this.mario.anims.play('mario-dead',true)
+        this.mario.setCollideWorldBounds(false)
+        this.mario.isDead=true
+        //this.sound.play('game-over')
+        this.sound.add('game-over',{volume:0.1}).play()
+
+        setTimeout(() =>{
+            this.mario.setVelocityY(-350)
+        },100)
+        
+        setTimeout(()=>{
+            this.scene.restart()
+        },2000)
+        
+    }
+   
+   
+
 
 }
