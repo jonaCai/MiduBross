@@ -2,6 +2,7 @@
 es un ojeto global, del motor de juegos
 que podemos configurar*/
 import { createAnimations } from "./animations.js"
+import{checkControls}from './controls.js'
 const config = {
     type: Phaser.AUTO ,// webgl, canvas
     width:256,
@@ -43,14 +44,38 @@ function preload(){
         'assets/entities/mario.png',
         //indicamos el framewidith, el tamaño de los frames.
         {frameWidth: 18, frameHeight: 16}
-    )   
+    ) 
+
+    this.load.spritesheet(
+        'goomba',
+        'assets/entities/overworld/goomba.png',
+        {frameWidth: 16, frameHeight: 16}
+    )
+
     this.load.audio('game-over', 
         'assets/sound/music/gameover.mp3')
+
+
+    this.load.audio('jump', 
+        'assets/sound/effects/jump.mp3')
+
+    this.load.audio('kick', 
+        'assets/sound/effects/kick.mp3')
+    
+
+    this.load.audio('theme', 
+        'assets/sound/music/overworld/theme.mp3')
+    
+    this.load.audio('goomba-stomp', 
+        'assets/sound/effects/goomba-stomp.wav')
 
 }
 
 function create(){
+    
+    
     //image(x,y, id-del-asset)
+
    this.add.image(100,50, 'cloud1')
    //cambiamos el origin para que se empiece a pintar desde la punta izquierda del recurso.
    .setOrigin(0,0)
@@ -82,53 +107,58 @@ function create(){
    .setGravityY(300)//para setear la gravedad en particular.
    .setCollideWorldBounds(true) //no escapa del mundo
 
+   this.enemy=this.physics.add.sprite(120, config.height-30,'goomba')
+   .setOrigin(0,1)
+   .setGravityY(300)
+   .setVelocityX(-50)
+
    this.physics.world.setBounds(0,0,2000,config.height)
    this.physics.add.collider(this.mario, this.floor)
+   this.physics.add.collider(this.enemy,this.floor)
+   this.physics.add.collider(this.mario, this.enemy, onHitEnemy, null, this)
+   
 
    this.cameras.main.setBounds(0,0,2000,config.height)
    this.cameras.main.startFollow(this.mario)
     
    createAnimations(this)
 
+   this.enemy.anims.play('goomba-walk', true)
    //creamos el objeto para detectar el teclado.
    this.keys= this.input.keyboard.createCursorKeys()
-
-
 }
+function onHitEnemy(mario, enemy){
+    if(mario.body.touching.down && enemy.body.touching.up){
+        
+        mario.setVelocityY(-200)
+        enemy.anims.play('goomba-dead', true)
+        setTimeout(()=>{
+            enemy.destroy()
+        },500)
+        enemy.destroy()
+        
+
+    }else{
+        //muere mario
+
+    }
+   }
 
 function update(){
-    if (this.mario.isDead) return
-
-    if (this.keys.left.isDown){
-        this.mario.anims.play('mario-walk',true)
-        this.mario.x -=2
-        this.mario.flipX=true//para girar la animacion
+    
+    checkControls(this)
+    const {mario, sound}=this
+    if (mario.isDead) return
+    if(mario.y >= config.height){
         
-    }else if (this.keys.right.isDown){
-        this.mario.anims.play('mario-walk',true)
-        this.mario.x +=2
-        this.mario.flipX=false
-    }else{
-        this.mario.anims.stop()
-        this.mario.setFrame('mario-idle', true)
-    }
-    if (this.keys.up.isDown && this.mario.body.touching.down){
-        this.mario.setVelocityY(-500)
-        this.mario.anims.play('mario-jump',true)
-    }
-    if(this.mario.body.touching.down==false){
-        this.mario.anims.play('mario-jump',true)
-    }
-    if(this.mario.y >= config.height){
-        
-        this.mario.anims.play('mario-dead',true)
-        this.mario.setCollideWorldBounds(false)
-        this.mario.isDead=true
+        mario.anims.play('mario-dead',true)
+        mario.setCollideWorldBounds(false)
+        mario.isDead=true
         //this.sound.play('game-over')
-        this.sound.add('game-over',{volume:0.1}).play()
-
+        sound.add('game-over',{volume:0.1}).play()
+       
         setTimeout(() =>{
-            this.mario.setVelocityY(-350)
+            mario.setVelocityY(-350)
         },100)
         
         setTimeout(()=>{
