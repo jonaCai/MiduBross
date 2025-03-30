@@ -34,10 +34,7 @@ export const createAnimations=(game)=>{
     })
     game.anims.create({
         key:'goomba-dead',
-        frames: game.anims.generateFrameNumbers(
-            'goomba',
-            {start:2, end:2}
-        ),
-        frameRate: 12
+        frames: [{key:'goomba',frame:2}]
+
     })
 }

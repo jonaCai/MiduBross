@@ -1,6 +1,6 @@
-/* global phaser
-es un ojeto global, del motor de juegos
-que podemos configurar*/
+// global phaser
+//es un ojeto global, del motor de juegos
+//que podemos configurar
 import { createAnimations } from "./animations.js"
 import{checkControls}from './controls.js'
 const config = {
@@ -21,6 +21,10 @@ const config = {
         create,// se ejecuta cuando el juego comienza
         update//se ejecuta en cada frame,constantemente.
     }
+    
+
+
+
 }
 //creamos el objeto de phaser con la configuracion
 
@@ -77,6 +81,7 @@ function create(){
     //image(x,y, id-del-asset)
 
    this.add.image(100,50, 'cloud1')
+
    //cambiamos el origin para que se empiece a pintar desde la punta izquierda del recurso.
    .setOrigin(0,0)
    //como la imagen es muy grande hay que escalarla:
@@ -86,7 +91,7 @@ function create(){
 
    //this.add.tileSprite(0, config.height , config.width, 32, 'floorbricks')
    //.setOrigin(0,1) 
-   this.floor=this.physics.add.staticGroup()
+   this.floor=this.physics.add.staticGroup() 
    this.floor
     .create(0,config.height-16,'floorbricks')
     .setOrigin(0,0.5)
@@ -115,7 +120,7 @@ function create(){
    this.physics.world.setBounds(0,0,2000,config.height)
    this.physics.add.collider(this.mario, this.floor)
    this.physics.add.collider(this.enemy,this.floor)
-   this.physics.add.collider(this.mario, this.enemy, onHitEnemy, null, this)
+   this.physics.add.collider(this.mario, this.enemy, onHitEnemy,null, this)
    
 
    this.cameras.main.setBounds(0,0,2000,config.height)
@@ -127,6 +132,7 @@ function create(){
    //creamos el objeto para detectar el teclado.
    this.keys= this.input.keyboard.createCursorKeys()
 }
+
 function onHitEnemy(mario, enemy){
     if(mario.body.touching.down && enemy.body.touching.up){
         
@@ -134,8 +140,9 @@ function onHitEnemy(mario, enemy){
         enemy.anims.play('goomba-dead', true)
         setTimeout(()=>{
             enemy.destroy()
-        },500)
-        enemy.destroy()
+        },500 )
+        enemy.setVelocityX(0)
+        mario.setVelocityX(0)
         
 
     }else{
@@ -149,13 +156,14 @@ function update(){
     checkControls(this)
     const {mario, sound}=this
     if (mario.isDead) return
+
     if(mario.y >= config.height){
         
         mario.anims.play('mario-dead',true)
         mario.setCollideWorldBounds(false)
         mario.isDead=true
         //this.sound.play('game-over')
-        sound.add('game-over',{volume:0.1}).play()
+        sound.add('game-over',{volume:0.5}).play()
        
         setTimeout(() =>{
             mario.setVelocityY(-350)
@@ -163,11 +171,12 @@ function update(){
         
         setTimeout(()=>{
             this.scene.restart()
-        },2000)
+        },2000) 
+
         
-    }
+    }     
    
-   
+
 
 
 }
