@@ -1,3 +1,5 @@
+import { playAudio } from "./audio.js"
+
 export function checkControls({mario, keys, sound}){
        
     if (mario.isDead) return
@@ -20,7 +22,8 @@ export function checkControls({mario, keys, sound}){
     if (keys.up.isDown && mario.body.touching.down){
         mario.setVelocityY(-250)
         mario.anims.play('mario-jump',true)
-        sound.add('jump',{volume:0.1}).play()
+        
+        playAudio('jump', sound)
     }
    /* mi humilde solucion a la animacion del salto
     if(mario.body.touching.down==false){
