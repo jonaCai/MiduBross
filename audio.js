@@ -12,9 +12,15 @@ const INIT_AUDIOS= [
     path: 'assets/sound/effects/kick.mp3'
 },
 {
+    key: 'coin-pickup', 
+    path: 'assets/sound/effects/coin.mp3'
+}
+,
+{
     key: 'goomba-stomp', 
     path: 'assets/sound/effects/goomba-stomp.wav'
 }
+
 ]
 export const initAudio= ({ load })=>{
     INIT_AUDIOS.forEach(({ key , path} )=>

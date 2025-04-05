@@ -4,6 +4,8 @@
 import { createAnimations } from "./animations.js"
 import { initAudio, playAudio} from "./audio.js"
 import{checkControls}from './controls.js'
+import { initSpritesheet } from "./spritesheet.js"
+
 const config = {
     type: Phaser.AUTO ,// webgl, canvas
     width:256,
@@ -40,49 +42,31 @@ function preload(){
     this.load.image(
         'floorbricks',
         'assets/scenery/overworld/floorbricks.png'
-
-
     )
 
-    this.load.spritesheet(
-        'mario',
-        'assets/entities/mario.png',
-        //indicamos el framewidith, el tamaño de los frames.
-        {frameWidth: 18, frameHeight: 16}
-    ) 
-
-    this.load.spritesheet(
-        'goomba',
-        'assets/entities/overworld/goomba.png',
-        {frameWidth: 16, frameHeight: 16}
-    )
-    //audioo
-
-    initAudio(this)
-
+    initSpritesheet(this)
+    
+    initAudio(this)    
+    
 }
 
 function create(){
     
-    
+    createAnimations(this)
+
     //image(x,y, id-del-asset)
 
    this.add.image(100,50, 'cloud1')
-
    //cambiamos el origin para que se empiece a pintar desde la punta izquierda del recurso.
    .setOrigin(0,0)
    //como la imagen es muy grande hay que escalarla:
    .setScale(0.15)
 
-   
-
-   //this.add.tileSprite(0, config.height , config.width, 32, 'floorbricks')
-   //.setOrigin(0,1) 
    this.floor=this.physics.add.staticGroup() 
    this.floor
-    .create(0,config.height-16,'floorbricks')
-    .setOrigin(0,0.5)
-    .refreshBody()
+   .create(0,config.height-16,'floorbricks')
+   .setOrigin(0,0.5)
+   .refreshBody()
 
    this.floor
    .create(150, config.height-16,'floorbricks')
@@ -99,10 +83,20 @@ function create(){
    .setGravityY(300)//para setear la gravedad en particular.
    .setCollideWorldBounds(true) //no escapa del mundo
 
-   this.enemy=this.physics.add.sprite(120, config.height-30,'goomba')
-   .setOrigin(0,1)
+   this.enemy=this.physics.add.sprite(130, config.height-40,'goomba')
+   .setOrigin(0.5,0.5)
    .setGravityY(300)
    .setVelocityX(-50)
+   .setCollideWorldBounds(true)
+
+   this.coins =this.physics.add.staticGroup()
+   this.coins.create(150,150,'coin').anims.play('coin-idle',true)
+   this.coins.create(180,160,'coin').anims.play('coin-idle',true)
+   this.coins.create(210,150,'coin').anims.play('coin-idle',true)
+   this.coins.create(240,160,'coin').anims.play('coin-idle',true)
+   this.coins.create(270,150,'coin').anims.play('coin-idle',true)   
+   this.physics.add.overlap(this.mario, this.coins, collectCoin, null, this)
+
 
    this.physics.world.setBounds(0,0,2000,config.height)
    this.physics.add.collider(this.mario, this.floor)
@@ -113,14 +107,48 @@ function create(){
    this.cameras.main.setBounds(0,0,2000,config.height)
    this.cameras.main.startFollow(this.mario)
     
-   createAnimations(this)
-
+  
    this.enemy.anims.play('goomba-walk', true)
    //creamos el objeto para detectar el teclado.
    this.keys= this.input.keyboard.createCursorKeys()
 }
 
+function collectCoin(mario, coin){
+    coin.disableBody(true,true)    
+    // coin.destroy()
+    playAudio('coin-pickup',this.sound)
+    addToScore(100, coin, this)
+}
+    function addToScore (scoreToAdd, origin, game){
+        const scoreText= game.add.text(
+            origin.x,
+            origin.y,
+            scoreToAdd,
+            {
+                fontFamily:'pixel',
+                fontSize: config.width / 40
+            }
+        )
+    
+    game.tweens.add({
+        targets: scoreText,
+        duration: 500,
+        y: scoreText.y - 20,
+        onComplete: () => {
+            game.tweens.add({
+                targets: scoreText,
+                duration:100,
+                alpha:0,
+                onComplete:()=>{
+                    scoreText.destroy()
+                    
+                }
+            })
+        }
+    })    
+}
 function onHitEnemy(mario, enemy){
+    //console.log(enemy.texture.key) **nos da info de que enemigo colisiona   
     if(mario.body.touching.down && enemy.body.touching.up){
         mario.setVelocityY(-200)
         enemy.anims.play('goomba-dead', true)
@@ -132,14 +160,12 @@ function onHitEnemy(mario, enemy){
         },500 )
         enemy.setVelocityX(0)
         mario.setVelocityX(0)
-        enemy.setVelocityY(-100)
-        
-        
-
-        
-
+        enemy.setVelocityY(-100)        
+        addToScore(200, enemy, this)
+           
     }else{
         //muere mario
+        killMario(this)
 
     }
    }
@@ -147,29 +173,43 @@ function onHitEnemy(mario, enemy){
 function update(){
     
     checkControls(this)
-    const {mario, sound}=this
-    if (mario.isDead) return
-
+    const {mario,enemy}=this
+    
     if(mario.y >= config.height){
-        
-        mario.anims.play('mario-dead',true)
-        mario.setCollideWorldBounds(false)
-        mario.isDead=true
-        //this.sound.play('game-over')
-        playAudio('gameover', sound)
-       
-        setTimeout(() =>{
-            mario.setVelocityY(-350)
-        },100)
-        
+        killMario(this)
+                
+    }
+    if(enemy.x<=10){
+       enemy.setVelocityX(50)
+    }else if(enemy.y+8 >= config.height){
+        enemy.anims.play('goomba-dead', true)
         setTimeout(()=>{
-            this.scene.restart()
-        },2000) 
-
-        
-    }     
-   
-
-
+            enemy.destroy()
+        },500 )
+        enemy.setVelocityX(0)        
+        enemy.setVelocityY(-100)
+    }
+      
 
 }
+function killMario(game){
+    const {mario, sound, scene}= game
+    if (mario.isDead) return
+
+    mario.anims.play('mario-dead',true)
+    mario.setCollideWorldBounds(false)
+    mario.isDead=true
+    mario.body.checkCollision.none=true
+    mario.setVelocityX(0)
+    //this.sound.play('game-over')
+    playAudio('gameover', sound)
+   
+    setTimeout(() =>{
+        mario.setVelocityY(-350)
+    },100)
+    
+    setTimeout(()=>{
+        scene.restart()
+    },2000)        
+}
+

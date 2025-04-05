@@ -1,5 +1,6 @@
 import { playAudio } from "./audio.js"
 
+
 export function checkControls({mario, keys, sound}){
        
     if (mario.isDead) return
