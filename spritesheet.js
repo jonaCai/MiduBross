@@ -19,6 +19,13 @@ const INIT_SPRITESHETS=[
     frameHeight:16
 
 },
+{
+    key:'mario-grown',
+    path:'assets/entities/mario-grown.png',
+    frameWidth:18,
+    frameHeight:32
+    
+}
 
 ]
 

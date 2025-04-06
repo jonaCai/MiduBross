@@ -43,6 +43,10 @@ function preload(){
         'floorbricks',
         'assets/scenery/overworld/floorbricks.png'
     )
+    this.load.image(
+        'supermushroom',
+        'assets/collectibles/super-mushroom.png'
+    )
 
     initSpritesheet(this)
     
@@ -89,13 +93,14 @@ function create(){
    .setVelocityX(-50)
    .setCollideWorldBounds(true)
 
-   this.coins =this.physics.add.staticGroup()
-   this.coins.create(150,150,'coin').anims.play('coin-idle',true)
-   this.coins.create(180,160,'coin').anims.play('coin-idle',true)
-   this.coins.create(210,150,'coin').anims.play('coin-idle',true)
-   this.coins.create(240,160,'coin').anims.play('coin-idle',true)
-   this.coins.create(270,150,'coin').anims.play('coin-idle',true)   
-   this.physics.add.overlap(this.mario, this.coins, collectCoin, null, this)
+   this.collectibles =this.physics.add.staticGroup()
+   this.collectibles.create(150,150,'coin').anims.play('coin-idle',true)
+   this.collectibles.create(180,160,'coin').anims.play('coin-idle',true)
+   this.collectibles.create(210,150,'coin').anims.play('coin-idle',true)
+   this.collectibles.create(240,160,'coin').anims.play('coin-idle',true)
+   this.collectibles.create(270,150,'coin').anims.play('coin-idle',true)   
+   this.collectibles.create(200,config.height-40, 'supermushroom').anims.play('supermushroom-idle', true)
+   this.physics.add.overlap(this.mario, this.collectibles, collectItem, null, this)
 
 
    this.physics.world.setBounds(0,0,2000,config.height)
@@ -113,11 +118,20 @@ function create(){
    this.keys= this.input.keyboard.createCursorKeys()
 }
 
-function collectCoin(mario, coin){
-    coin.disableBody(true,true)    
-    // coin.destroy()
-    playAudio('coin-pickup',this.sound)
-    addToScore(100, coin, this)
+function collectItem(mario, item){
+    const{texture:{key}}=item
+    item.destroy()
+    if (key=='coin'){
+        
+        playAudio('coin-pickup',this.sound, {volume: 0.2})
+        addToScore(100, item, this)
+    } else if(key=='supermushroom') {
+        this.physics.world.pause()
+        this.anims.pauseAll()
+
+        mario.isGrown=true
+        mario.anims.play('mario-grown-idle', true)
+    }
 }
     function addToScore (scoreToAdd, origin, game){
         const scoreText= game.add.text(
@@ -153,7 +167,7 @@ function onHitEnemy(mario, enemy){
         mario.setVelocityY(-200)
         enemy.anims.play('goomba-dead', true)
         
-        playAudio('goomba-stomp',this.sound)
+        playAudio('goomba-stomp',this.sound, {volume: 0.2})
         
         setTimeout(()=>{
             enemy.destroy()
@@ -202,7 +216,7 @@ function killMario(game){
     mario.body.checkCollision.none=true
     mario.setVelocityX(0)
     //this.sound.play('game-over')
-    playAudio('gameover', sound)
+    playAudio('gameover', sound, {volume:0.2})
    
     setTimeout(() =>{
         mario.setVelocityY(-350)
