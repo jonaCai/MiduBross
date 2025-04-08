@@ -19,6 +19,10 @@ const INIT_AUDIOS= [
 {
     key: 'goomba-stomp', 
     path: 'assets/sound/effects/goomba-stomp.wav'
+},
+{   
+    key:'powerup',
+    path:'assets/sound/effects/powerup.mp3'
 }
 
 ]

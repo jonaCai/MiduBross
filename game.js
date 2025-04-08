@@ -129,8 +129,33 @@ function collectItem(mario, item){
         this.physics.world.pause()
         this.anims.pauseAll()
 
+        
+        
+        playAudio('powerup',this.sound,{volume:0.2})
+        let i=0;
+        const interval=setInterval(()=>{
+            i++
+            mario.anims.play(i%2==0
+                ? 'mario-grown-idle'
+                :'mario-idle'
+            )
+            
+        },100)
+
+        mario.isBlocked=true
         mario.isGrown=true
-        mario.anims.play('mario-grown-idle', true)
+
+        setTimeout(()=>{
+            mario.setDisplaySize(18,32)
+            mario.body.setSize(18,32)
+                        
+            this.anims.resumeAll()
+            mario.isBlocked = false
+            clearInterval(interval)
+            this.physics.world.resume()
+        },1000)
+        
+
     }
 }
     function addToScore (scoreToAdd, origin, game){

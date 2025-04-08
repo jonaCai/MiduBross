@@ -50,6 +50,26 @@ export const createAnimations=(game)=>{
         key:'mario-grown-idle',
         frames: [{key:'mario-grown', frame: 0}]
     })
-    
-    
+    game.anims.create({
+        key:'mario-grown-jump',
+        frames: [{key:'mario-grown',frame:5}]               
+        
+    })
+    game.anims.create({
+        key:'mario-grown-dead',
+        frames: [{key:'mario-grown',frame:4}]               
+        
+    })
+    game.anims.create({
+        key:'mario-grown-walk',
+        frames:game.anims.generateFrameNumbers(
+            'mario-grown',
+            {start:3,end:0}
+        ),
+        repeat: -1 //infinito
+    })
+    game.anims.create({
+        key:'mario-grown-down',
+        frames: [{key:'mario-grown',frame:4}]   
+    })
 }
